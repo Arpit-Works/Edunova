@@ -49,7 +49,7 @@ export default function Example() {
                 </MenuButton>
               </div>
             </Menu>
-                <span className="p-1 text-lg">Jane Doe</span>
+                <span className="p-1 text-lg">Admin</span>
           </div>
         </div>
       </div>

@@ -1,36 +1,96 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Edunova
 
-## Getting Started
+People Directory dashboard built with Next.js 14 (App Router), React 18, TypeScript, Tailwind CSS, and MongoDB Atlas.
 
-First, run the development server:
+Open the app, choose **People Directory**, and manage team members. Records are stored in the `edunova` database, `people` collection.
+
+## Features
+
+- List people with search, role filters, and team filters
+- Add, edit, and delete members
+- Profile photo preview, or a placeholder when no photo is set
+- Loading, empty, and error states, including retry
+
+## Requirements
+
+- Node.js 18 or newer
+- npm
+- A MongoDB Atlas cluster (or another MongoDB instance)
+
+## Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Create a `.env` file in the project root. Do not commit it.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```env
+MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>/<db>
+MONGODB_DB=edunova
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+`MONGODB_URI` is required. `MONGODB_DB` defaults to `edunova` when it is omitted.
 
-## Learn More
+## Scripts
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run dev     # http://localhost:3000
+npm run build
+npm run start
+npm run lint
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Check the database connection at [http://localhost:3000/api/health](http://localhost:3000/api/health). A healthy response is `{ "status": "ok", "database": "connected" }`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+## API
 
-## Deploy on Vercel
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/api/health` | Ping MongoDB |
+| `GET` | `/api/people` | List people |
+| `POST` | `/api/people` | Create a person |
+| `GET` | `/api/people/:id` | Fetch one person |
+| `PATCH` | `/api/people/:id` | Update a person |
+| `DELETE` | `/api/people/:id` | Delete a person |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+List search uses query parameters the API already supports:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+```text
+GET /api/people?search=amit&role=Backend%20Developer&team=Technology
+```
+
+`search` matches name, username, or email. The directory UI filters the loaded list in the browser so search and filters work together.
+
+A person record looks like this:
+
+```json
+{
+  "id": "mongo-object-id",
+  "image": "/images/first.jpg",
+  "name": "Amit Verma",
+  "username": "@amitverma",
+  "gender": "Male",
+  "status": "Active",
+  "role": "Backend Developer",
+  "email": "amitverma@example.com",
+  "teams": ["Technology"]
+}
+```
+
+`teams` is one or more of `Design`, `Product`, `Marketing`, and `Technology`. `status` is `Active` or `Inactive`. Email must be unique. The API maps MongoDB `_id` to `id`.
+
+## Project layout
+
+```text
+app/
+  api/health/route.ts
+  api/people/route.ts
+  api/people/[id]/route.ts
+  components/          UI (directory, form, filters, details)
+  lib/mongodb.ts       MongoDB connection
+  lib/api/people.ts    Browser API helpers
+  lib/validations/people.ts
+  people/Page.tsx      People Directory
+types/person.ts
+```

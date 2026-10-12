@@ -1,7 +1,7 @@
 'use client' ;
 import Image from "next/image";
 import Page from "../people/Page"
-import { useState } from "react";
+import { Suspense, useState } from "react";
 
 
 type value = 'overView' | 'People' ;
@@ -42,8 +42,13 @@ export default function Sidebar() {
       {/* <!-- Main Content --> */}
       <div className="flex-1 p-10  ">
         <div className="container h-full border rounded-lg ">
-          {activeComponent === 'People'? <Page/>: <h1 className="text-4xl font-bold m-4">Welcome, Jane Doe!</h1>
-          }
+          {activeComponent === 'People'? (
+            <Suspense fallback={<div className="m-4 text-gray-500">Loading directory...</div>}>
+              <Page/>
+            </Suspense>
+          ) : (
+            <h1 className="text-4xl font-bold m-4">Welcome, Admin!</h1>
+          )}
       </div>
     </div>
     </div>
