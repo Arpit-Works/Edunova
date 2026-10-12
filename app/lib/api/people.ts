@@ -8,6 +8,12 @@ export type GetPeopleParams = {
   team?: string;
 };
 
+function messageFromText(text: string, status: number) {
+  const compact = text.replace(/\s+/g, " ").trim();
+  if (!compact) return `Request failed (${status})`;
+  return compact.length > 200 ? `${compact.slice(0, 200)}…` : compact;
+}
+
 async function request<T>(
   url: string,
   options?: RequestInit
@@ -20,10 +26,20 @@ async function request<T>(
     },
   });
 
-  const result = await response.json();
+  const contentType = response.headers.get("content-type") ?? "";
+  const isJson = contentType.includes("application/json");
+
+  if (!isJson) {
+    const text = await response.text();
+    throw new Error(messageFromText(text, response.status));
+  }
+
+  const result = (await response.json()) as T & { message?: string };
 
   if (!response.ok) {
-    throw new Error(result.message || "Request failed");
+    throw new Error(
+      result.message || `Request failed (${response.status})`
+    );
   }
 
   return result;
